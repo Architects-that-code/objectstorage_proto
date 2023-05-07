@@ -26,6 +26,7 @@ func main() {
 	fmt.Println("4. GetMaker")
 	fmt.Println("5. GetPreflight")
 	fmt.Println("6. CheckPath")
+	fmt.Println("7. GetSizes")
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your choice: ")
@@ -54,9 +55,16 @@ func main() {
 	case 6:
 		connobj := core.GetConnections()
 		getPaths(connobj)
+	case 7:
+		connobj := core.GetConnections()
+		getSizes(connobj)
 	default:
 		fmt.Println("Invalid choice")
 	}
+}
+
+func getSizes(connobj core.ConnectionObj) {
+	reader.GetSizes(connobj)
 }
 
 func getPaths(connobj core.ConnectionObj) {

@@ -42,6 +42,8 @@ func GetReader(connobj core.ConnectionObj) {
 	sourceObjectsCh := make(chan []objectstorage.ObjectSummary)
 	targetObjectsCh := make(chan []objectstorage.ObjectSummary)
 
+	GetSizes(connobj)
+
 	go func() {
 		_source_objects, err := ListObjectsInBucket(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
 		if err != nil {
