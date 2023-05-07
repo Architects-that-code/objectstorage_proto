@@ -13,11 +13,7 @@ import (
 
 func GetSizes(connobj core.ConnectionObj) {
 
-	log.Printf("Listing objects in bucket %v in %v\n", connobj.Config.Source.Bucketname, connobj.SourceClient.Host)
-
 	getObjectCount(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
-
-	log.Printf("Listing objects in bucket %v in %v\n", connobj.Config.Target.Bucketname, connobj.TargetClient.Host)
 
 	getObjectCount(connobj.NameSpace, connobj.Config.Target.Bucketname, connobj.TargetClient)
 
@@ -45,6 +41,6 @@ func getObjectCount(namespace, bucketName string, objectStorageClient objectstor
 	// Get the object count from the bucket metadata
 	objectCount := res.Bucket.ApproximateCount
 
-	log.Printf("bucket %v has approximately %s objects\n", bucketName, strconv.FormatInt(int64(*objectCount), 10))
+	log.Printf("bucket %v in region %v has approximately %s objects\n", bucketName, objectStorageClient.Endpoint(), strconv.FormatInt(int64(*objectCount), 10))
 
 }

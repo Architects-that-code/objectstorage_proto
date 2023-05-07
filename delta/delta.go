@@ -8,51 +8,70 @@ import (
 	"sync"
 
 	"myworkspace/core"
+	"myworkspace/reader"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
-
-
 func GetDelta(connobj core.ConnectionObj) {
 	// use common connections to get config
+
+	reader.GetSizes(connobj)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
 
 	var sourceHasDelta bool
 
 	config := connobj.Config
-
-	_source_objectStorageClient := connobj.SourceClient
-	_target_objectStorageClient := connobj.TargetClient
 
 	namespace := connobj.NameSpace
 
 	// now call the ListObjectsInBucket function in parallel
 	sourceObjectsCh := make(chan []objectstorage.ObjectSummary)
 	targetObjectsCh := make(chan []objectstorage.ObjectSummary)
+	errCh := make(chan error, 2)
+
+	go core.ListObjectsInBucket(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient, &wg, sourceObjectsCh, errCh)
+	go core.ListObjectsInBucket(connobj.NameSpace, connobj.Config.Target.Bucketname, connobj.TargetClient, &wg, targetObjectsCh, errCh)
 
 	go func() {
-		_source_objects, err := core.ListObjectsInBucket(namespace, config.Source.Bucketname, _source_objectStorageClient)
-		if err != nil {
-			log.Println("Error listing objects in bucket:", err)
-			sourceObjectsCh <- nil
-		} else {
-			sourceObjectsCh <- _source_objects
-		}
+		wg.Wait()
+		close(sourceObjectsCh)
+		close(targetObjectsCh)
+		close(errCh)
 	}()
-		
-	go func() {
-		_target_objects, err := core.ListObjectsInBucket(namespace, config.Target.Bucketname, _target_objectStorageClient)
-		if err != nil {
-			log.Println("Error listing objects in bucket:", err)
-			targetObjectsCh <- nil
-		} else {
-			targetObjectsCh <- _target_objects
+	var sourceObjects, targetObjects []objectstorage.ObjectSummary
+	///
+	for {
+		select {
+		case obj, ok := <-sourceObjectsCh:
+			if !ok {
+				sourceObjectsCh = nil
+				break
+			}
+			sourceObjects = append(sourceObjects, obj...)
+		case obj, ok := <-targetObjectsCh:
+			if !ok {
+				targetObjectsCh = nil
+				break
+			}
+			targetObjects = append(targetObjects, obj...)
+		case err := <-errCh:
+			fmt.Println("Error listing objects in bucket:", err)
 		}
-	}()
+		if sourceObjectsCh == nil && targetObjectsCh == nil {
+			break
+		}
+	}
+	fmt.Println("Found Source ", len(sourceObjects), "objects")
+	fmt.Println("Found Target ", len(targetObjects), "objects")
 
-	_source_objects := <-sourceObjectsCh
-	_target_objects := <-targetObjectsCh
+	////
+
+	_source_objects := sourceObjects
+	_target_objects := targetObjects
 
 	if _source_objects == nil || _target_objects == nil {
 		return
@@ -107,16 +126,16 @@ func GetDelta(connobj core.ConnectionObj) {
 	//
 
 	if config.ForceSourceRefresh && !config.ForceSourceDelete {
-		log.Println("forcing source update\n")
-		NewSimpleUpdate(_source_foundObjects, _source_objectStorageClient, namespace, connobj, false)
+		log.Println("forcing source update")
+		NewSimpleUpdate(_source_foundObjects, connobj.SourceClient, namespace, connobj, false)
 	} else {
 		if sourceHasDelta && config.DeltaUpdate {
-			log.Println("touching delta objects on source \n")
-			NewSimpleUpdate(_sync_objts, _source_objectStorageClient, namespace, connobj, config.ForceSourceDelete)
+			log.Println("touching delta objects on source ")
+			NewSimpleUpdate(_sync_objts, connobj.SourceClient, namespace, connobj, config.ForceSourceDelete)
 		} else {
 			if config.ForceSourceDelete {
-				log.Println("forcing source delete-purge\n")
-				NewSimpleUpdate(_source_foundObjects, _source_objectStorageClient, namespace, connobj, connobj.Config.ForceSourceDelete)
+				log.Println("forcing source delete-purge")
+				NewSimpleUpdate(_source_foundObjects, connobj.SourceClient, namespace, connobj, connobj.Config.ForceSourceDelete)
 			}
 			log.Println("skipped sync  - end")
 		}
@@ -132,8 +151,6 @@ func GetDelta(connobj core.ConnectionObj) {
 	log.Println("to be synced: ", len(_sync_objts), " objects")
 	//log.Printf("%+v\n", _sync_objts)
 }
-
-const maxWorkers = 10
 
 func NewSimpleUpdate(things map[string]*objectstorage.ObjectSummary, client objectstorage.ObjectStorageClient, ns string, config core.ConnectionObj, delete bool) {
 	log.Printf("Forcing delete: %+v\n", delete)
@@ -165,7 +182,7 @@ func NewSimpleUpdate(things map[string]*objectstorage.ObjectSummary, client obje
 				// Notify the wait group that the goroutine has finished
 				wg.Done()
 			}()
-			
+
 			if !delete {
 				err := process(ns, config, objSum, client, 0)
 				if err != nil {
@@ -177,11 +194,11 @@ func NewSimpleUpdate(things map[string]*objectstorage.ObjectSummary, client obje
 					errCh <- err
 				}
 			}
-		
-			log.Printf("Processed (%+v) %v", actionStr, objSum.Name )
+
+			log.Printf("Processed (%+v) %v", actionStr, objSum.Name)
 		}(*objSum)
 	}
-	
+
 	go func() {
 		wg.Wait()
 		close(errCh)

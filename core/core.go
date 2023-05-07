@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
-	
+	"sync"
+	"time"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/example/helpers"
@@ -50,9 +52,9 @@ type Config struct {
 	ForceSourceRefresh   bool   `yaml:"force_source_refresh"`
 	ConfigPath           string `yaml:"configpath"`
 	UseInstancePrincipal string `yaml:"useinstanceprincipal"`
-	RenamerMaxWorker int `yaml:"renamer-maxworker"`
-	MakerNumFiles int `yaml:"maker-numfile"`
-	MakerMaxFileSize int `yaml:"maker-maxfilesize"`
+	RenamerMaxWorker     int    `yaml:"renamer-maxworker"`
+	MakerNumFiles        int    `yaml:"maker-numfile"`
+	MakerMaxFileSize     int    `yaml:"maker-maxfilesize"`
 }
 
 func getSourceClient(config Config, err error) objectstorage.ObjectStorageClient {
@@ -114,29 +116,50 @@ func getnamespace(ctx context.Context, c objectstorage.ObjectStorageClient) stri
 	fmt.Println("getting namespace")
 	return *r.Value
 }
-func ListObjectsInBucket(namespace string, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) ([]objectstorage.ObjectSummary, error) {
-	fmt.Printf("getting data from bucket:%v in   %v \n",bucketName , objectStorageClient.Host)
-	var objSums []objectstorage.ObjectSummary
+func ListObjectsInBucket(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient, wg *sync.WaitGroup, objSums chan<- []objectstorage.ObjectSummary, errCh chan<- error) {
+	defer wg.Done()
+	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)
+
+	defaultRetryPolicy := common.DefaultRetryPolicy()
+	var objects []objectstorage.ObjectSummary
 	fields := "name,size,timeCreated,timeModified,storageTier"
+
 	listObjectsRequest := objectstorage.ListObjectsRequest{
 		NamespaceName: &namespace,
 		BucketName:    &bucketName,
 		Fields:        &fields,
 	}
+
+	listObjectsRequest.RequestMetadata = common.RequestMetadata{
+		RetryPolicy: &defaultRetryPolicy,
+	}
 	ctx := context.Background()
+
+	// Create a ticker that prints a status message every 10 seconds
+	statusTicker := time.NewTicker(10 * time.Second)
+	defer statusTicker.Stop()
+
 	for {
+		select {
+		case <-statusTicker.C:
+			log.Printf("Retrieved %d objects so far from bucket %v", len(objects), bucketName)
+		default:
+			// Continue with the loop
+		}
+
 		listObjectsResponse, err := objectStorageClient.ListObjects(ctx, listObjectsRequest)
 		if err != nil {
-			return nil, err
+			errCh <- err
+			return
 		}
-		for _, objectSummary := range listObjectsResponse.ListObjects.Objects {
-				objSums = append(objSums, objectSummary)
-		}
+		objects = append(objects, listObjectsResponse.ListObjects.Objects...)
+
 		if listObjectsResponse.ListObjects.NextStartWith != nil {
+			//log.Printf("from bucket %v, next start with: %v", bucketName, *listObjectsResponse.ListObjects.NextStartWith)
 			listObjectsRequest.Start = listObjectsResponse.ListObjects.NextStartWith
 		} else {
 			break
 		}
 	}
-	return objSums, nil
+	objSums <- objects
 }
