@@ -1,0 +1,74 @@
+package reader
+
+import (
+	"context"
+	"fmt"
+
+	"myworkspace/core"
+
+	"github.com/oracle/oci-go-sdk/v65/objectstorage"
+)
+
+// This function returns a list of all objects in a given bucket
+func ListObjectsInBucket(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) ([]objectstorage.ObjectSummary, error) {
+	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)
+	var objSums []objectstorage.ObjectSummary
+	fields := "name,size,timeCreated,timeModified,storageTier"
+	listObjectsRequest := objectstorage.ListObjectsRequest{
+		NamespaceName: &namespace,
+		BucketName:    &bucketName,
+		Fields:        &fields,
+	}
+	ctx := context.Background()
+	for {
+		listObjectsResponse, err := objectStorageClient.ListObjects(ctx, listObjectsRequest)
+		if err != nil {
+			return nil, err
+		}
+		for _, objectSummary := range listObjectsResponse.ListObjects.Objects {
+			objSums = append(objSums, objectSummary)
+		}
+		if listObjectsResponse.ListObjects.NextStartWith != nil {
+			listObjectsRequest.Start = listObjectsResponse.ListObjects.NextStartWith
+		} else {
+			break
+		}
+	}
+	return objSums, nil
+}
+
+func GetReader(connobj core.ConnectionObj) {
+
+	sourceObjectsCh := make(chan []objectstorage.ObjectSummary)
+	targetObjectsCh := make(chan []objectstorage.ObjectSummary)
+
+	go func() {
+		_source_objects, err := ListObjectsInBucket(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
+		if err != nil {
+			fmt.Println("Error listing objects in bucket:", err)
+			sourceObjectsCh <- nil
+		} else {
+			sourceObjectsCh <- _source_objects
+		}
+	}()
+
+	go func() {
+		_target_objects, err := ListObjectsInBucket(connobj.NameSpace, connobj.Config.Target.Bucketname, connobj.TargetClient)
+		if err != nil {
+			fmt.Println("Error listing objects in bucket:", err)
+			targetObjectsCh <- nil
+		} else {
+			targetObjectsCh <- _target_objects
+		}
+	}()
+
+	_source_objects := <-sourceObjectsCh
+	_target_objects := <-targetObjectsCh
+
+	if _source_objects == nil || _target_objects == nil {
+		return
+	}
+	fmt.Println("Found Source ", len(_source_objects), "objects")
+	fmt.Println("Found Target ", len(_target_objects), "objects")
+
+}

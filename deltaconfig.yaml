@@ -1,0 +1,24 @@
+configpath: /Users/jscanlon/.oci/config
+useinstanceprincipal: false
+source:
+  profilename: CHILD_jossur4n01
+  bucketname: MyBigOldCloudBucket
+  region: us-ashburn-1
+target:
+  profilename: CHILD_jossur4n01_phx
+  bucketname:  NewBucketPHX
+  region: us-phoenix-1
+
+batchsize: 100
+limit: 1000000
+progressinterval: 50
+maxconcurrency: 10
+
+renamer-maxworker: 50
+maker-numfile: 1000000
+maker-maxfilesize: 409600
+
+
+deltaupdate: false
+force_source_delete: false
+force_source_refresh: false
