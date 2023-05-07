@@ -40,7 +40,7 @@ func getObjectCount(namespace, bucketName string, objectStorageClient objectstor
 	if err != nil {
 		log.Fatalf("Error getting bucket: %v\n", err)
 	}
-	log.Printf("res: %v\n", res)
+	//log.Printf("res: %v\n", res)
 
 	// Get the object count from the bucket metadata
 	objectCount := res.Bucket.ApproximateCount
