@@ -20,13 +20,13 @@ func main() {
 	fmt.Println("____")
 
 	fmt.Println("Select an option:")
-	fmt.Println("1. GetReader")
-	fmt.Println("2. GetRenamer")
-	fmt.Println("3. GetDelta")
-	fmt.Println("4. GetMaker")
+	fmt.Println("1. GetReader: I might be slow, but I will get you all the files in your bucket")
+	fmt.Println("2. GetRenamer do not use unless you know what you are doing (ie, read the code)")
+	fmt.Println("3. GetDelta: find files that are in source but not in target and allow to touch to sync")
+	fmt.Println("4. GetMaker: CAUTION: this will create LOTS of files in your source bucket")
 	fmt.Println("5. GetPreflight")
 	fmt.Println("6. CheckPath")
-	fmt.Println("7. GetSizes")
+	fmt.Println("7. GetSizes: FASTEST way to get sizes of all files in a bucket and check for replication policies")
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your choice: ")

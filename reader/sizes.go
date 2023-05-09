@@ -2,7 +2,6 @@ package reader
 
 import (
 	"context"
-	"fmt"
 	"myworkspace/core"
 	"strconv"
 
@@ -62,6 +61,12 @@ func GetReplicationPolicy(namespace string, bucketName string, client objectstor
 	resp, err := client.ListReplicationPolicies(context.Background(), req)
 	helpers.FatalIfError(err)
 
+	for _, policy := range resp.Items {
+
+		log.Printf("Replication policy for bucket %s is %s points at target region:bucket: %s:%s and was created on %v and last SYNCED at: %v", bucketName, *policy.Name, *policy.DestinationRegionName, *policy.DestinationBucketName,
+			*policy.TimeCreated, *policy.TimeLastSync)
+	}
+
 	// Retrieve value from the response.
-	fmt.Println(resp)
+	//fmt.Println(resp)
 }
