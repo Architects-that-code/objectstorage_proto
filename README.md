@@ -10,3 +10,11 @@ Need a way to find source files created before X date
 Need a way to prototype a multi-sync solution (does not need to be replication service)
 Need a way to generate lots of files for testing
 Need a way to clean up
+
+
+To get started:
+configuration file: deltaconfig.yaml
+ =- 'should be' pretty self explanatory - some global settings (auth, source target) - then some 'module specific ones'
+
+
+ DISCLAIMER:  this code is NOT production ready, NOR is it intended to be.  It is a prototype to test out some ideas and concepts.  
