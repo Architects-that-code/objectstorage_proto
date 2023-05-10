@@ -1,5 +1,5 @@
 configpath: /Users/jscanlon/.oci/config
-useinstanceprincipal: false
+useinstanceprincipal: true
 source:
   profilename: CHILD_jossur4n01
   bucketname: MyBigOldCloudBucket

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
+	"github.com/oracle/oci-go-sdk/v65/common/auth"
 	"github.com/oracle/oci-go-sdk/v65/example/helpers"
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 	"gopkg.in/yaml.v2"
@@ -51,15 +52,25 @@ type Config struct {
 	ForceSourceDelete    bool   `yaml:"force_source_delete"`
 	ForceSourceRefresh   bool   `yaml:"force_source_refresh"`
 	ConfigPath           string `yaml:"configpath"`
-	UseInstancePrincipal string `yaml:"useinstanceprincipal"`
+	UseInstancePrincipal bool   `yaml:"useinstanceprincipal"`
 	RenamerMaxWorker     int    `yaml:"renamer-maxworker"`
 	MakerNumFiles        int    `yaml:"maker-numfile"`
 	MakerMaxFileSize     int    `yaml:"maker-maxfilesize"`
 }
 
 func getSourceClient(config Config, err error) objectstorage.ObjectStorageClient {
-	_source_configProvider := common.CustomProfileConfigProvider(config.ConfigPath, config.Source.Profilename)
+	var _source_configProvider common.ConfigurationProvider
+
+	if config.UseInstancePrincipal {
+		log.Printf("using instanceprincipal")
+		_source_configProvider, _ = auth.InstancePrincipalConfigurationProvider()
+	} else {
+		log.Printf("NOT using instanceprincipal")
+		_source_configProvider = common.CustomProfileConfigProvider(config.ConfigPath, config.Source.Profilename)
+
+	}
 	_source_objectStorageClient, err := objectstorage.NewObjectStorageClientWithConfigurationProvider(_source_configProvider)
+
 	if err != nil {
 		fmt.Println("Error creating Object Storage client:", err)
 		os.Exit(1)
