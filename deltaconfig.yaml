@@ -19,6 +19,6 @@ maker-numfile: 1000000
 maker-maxfilesize: 409600
 
 
-deltaupdate: false
+deltaupdate: true
 force_source_delete: false
 force_source_refresh: false

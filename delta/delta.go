@@ -195,7 +195,7 @@ func NewSimpleUpdate(things map[string]*objectstorage.ObjectSummary, client obje
 				}
 			}
 
-			log.Printf("Processed (%+v) %v", actionStr, objSum.Name)
+			log.Printf("Processed (%+v) %v", actionStr, &objSum.Name)
 		}(*objSum)
 	}
 
