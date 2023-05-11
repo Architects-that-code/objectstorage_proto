@@ -44,6 +44,7 @@ type Config struct {
 		Bucketname  string `yaml:"bucketname"`
 		Region      string `yaml:"region"`
 	} `yaml:"target"`
+	HomeRegion           string `yaml:"home_region"`
 	DeltaUpdate          bool   `yaml:"deltaupdate"`
 	BatchSize            int    `yaml:"batchsize"`
 	Limit                int    `yaml:"limit"`
