@@ -1,13 +1,13 @@
 configpath: /Users/jscanlon/.oci/config
 useinstanceprincipal: false
 source:
-  profilename: CHILD_jossur4n01_phx
-  bucketname:  whathe
-  region: us-phoenix-1
-target:
   profilename: CHILD_jossur4n01
-  bucketname: MyBigOldCloudBucket
-  region: us-ashburn-a
+  bucketname:  MyBigOldCloudBucket
+  region: us-ashburn-1
+target:
+  profilename: CHILD_jossur4n01_phx
+  bucketname: NewBucketPHX
+  region: us-ashburn-1
 home_region:
   us-ashburn-1
 
