@@ -27,6 +27,7 @@ func main() {
 	fmt.Println("5. GetPreflight")
 	fmt.Println("6. CheckPath")
 	fmt.Println("7. GetSizes: FASTEST way to get sizes of all files in a bucket and check for replication policies")
+	fmt.Println("8. GetSingleReader: read all from single bucket")
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your choice: ")
@@ -58,9 +59,16 @@ func main() {
 	case 7:
 		connobj := core.GetConnections()
 		getSizes(connobj)
+	case 8:
+		connobj := core.GetConnections()
+		getSingleReader(connobj)
 	default:
 		fmt.Println("Invalid choice")
 	}
+}
+
+func getSingleReader(connobj core.ConnectionObj) {
+	reader.GetSourceOnlyReader(connobj)
 }
 
 func getSizes(connobj core.ConnectionObj) {
