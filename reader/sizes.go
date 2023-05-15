@@ -14,14 +14,14 @@ import (
 
 func GetSizes(connobj core.ConnectionObj) {
 
-	getObjectCount(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
+	GetObjectCount(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
 	GetReplicationPolicy(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
-	getObjectCount(connobj.NameSpace, connobj.Config.Target.Bucketname, connobj.TargetClient)
+	GetObjectCount(connobj.NameSpace, connobj.Config.Target.Bucketname, connobj.TargetClient)
 	GetReplicationPolicy(connobj.NameSpace, connobj.Config.Target.Bucketname, connobj.TargetClient)
 
 }
 
-func getObjectCount(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) {
+func GetObjectCount(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) {
 	// Create a context for the API call
 	ctx := context.Background()
 

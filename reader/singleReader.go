@@ -7,15 +7,16 @@ import (
 	"myworkspace/core"
 	"time"
 
-	"github.com/oracle/oci-go-sdk/objectstorage"
+	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
 // This function returns a list of all objects in a given bucket
 
 func GetSourceOnlyReader(connobj core.ConnectionObj) {
 
-	GetSizes(connobj)
-	objects := ListObjectsInSingleBucket(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
+	GetObjectCount(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
+	objects, _ := ListObjectsInBucketSIMPLE(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
+	//objects := ListObjectsInSingleBucket(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
 	if objects != nil {
 		log.Printf("number of objects in bucket %s is %d", connobj.Config.Source.Bucketname, len(objects))
 	}
@@ -74,4 +75,40 @@ func ListObjectsInSingleBucket(namespace, bucketName string, objectStorageClient
 		}
 	}
 	return objects
+}
+
+func ListObjectsInBucketSIMPLE(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) ([]objectstorage.ObjectSummary, error) {
+	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)
+	var objSums []objectstorage.ObjectSummary
+	fields := "name,size,timeCreated,timeModified,storageTier"
+	/**
+	var limit = 1000
+	Limit:         common.Int(limit),
+	**/
+	listObjectsRequest := objectstorage.ListObjectsRequest{
+		NamespaceName: &namespace,
+		BucketName:    &bucketName,
+		Fields:        &fields,
+	}
+	ctx := context.Background()
+	var ctr = 1
+	for {
+		log.Printf("call %d", ctr)
+		listObjectsResponse, err := objectStorageClient.ListObjects(ctx, listObjectsRequest)
+		if err != nil {
+			return nil, err
+		}
+
+		//objSums = append(objSums, listObjectsResponse.ListObjects.Objects...)
+		//log.Printf("num retrieved so far: %d", len(objSums))
+
+		if listObjectsResponse.ListObjects.NextStartWith != nil {
+			//log.Printf("call next: %s", *listObjectsResponse.ListObjects.NextStartWith)
+			listObjectsRequest.Start = listObjectsResponse.ListObjects.NextStartWith
+		} else {
+			break
+		}
+		ctr++
+	}
+	return objSums, nil
 }
