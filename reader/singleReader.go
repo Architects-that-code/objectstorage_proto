@@ -78,6 +78,7 @@ func ListObjectsInSingleBucket(namespace, bucketName string, objectStorageClient
 }
 
 func ListObjectsInBucketSIMPLE(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) ([]objectstorage.ObjectSummary, error) {
+	objectChannel := make(chan []objectstorage.ObjectSummary, 100)
 	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)
 	var objSums []objectstorage.ObjectSummary
 	fields := "name,size,timeCreated,timeModified,storageTier"
@@ -101,14 +102,18 @@ func ListObjectsInBucketSIMPLE(namespace, bucketName string, objectStorageClient
 
 		//objSums = append(objSums, listObjectsResponse.ListObjects.Objects...)
 		//log.Printf("num retrieved so far: %d", len(objSums))
-
+		objectChannel <- listObjectsResponse.ListObjects.Objects
 		if listObjectsResponse.ListObjects.NextStartWith != nil {
 			//log.Printf("call next: %s", *listObjectsResponse.ListObjects.NextStartWith)
 			listObjectsRequest.Start = listObjectsResponse.ListObjects.NextStartWith
 		} else {
 			break
 		}
-		ctr++
+		for objects := range objectChannel {
+			objects = append(objects, objects...)
+			ctr++
+		}
+
 	}
 	return objSums, nil
 }

@@ -11,6 +11,7 @@ import (
 	"myworkspace/reader"
 	"myworkspace/renamer"
 	"myworkspace/stuff"
+	"myworkspace/swapper"
 
 	"os"
 	"strconv"
@@ -28,6 +29,7 @@ func main() {
 	fmt.Println("6. CheckPath")
 	fmt.Println("7. GetSizes: FASTEST way to get sizes of all files in a bucket and check for replication policies")
 	fmt.Println("8. GetSingleReader: read all from single bucket")
+	fmt.Println("9. SWAPPING: Change bucket from source to target")
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your choice: ")
@@ -62,9 +64,16 @@ func main() {
 	case 8:
 		connobj := core.GetConnections()
 		getSingleReader(connobj)
+	case 9:
+		connobj := core.GetConnections()
+		getSwapper(connobj)
 	default:
 		fmt.Println("Invalid choice")
 	}
+}
+
+func getSwapper(connobj core.ConnectionObj) {
+	swapper.GetSwapper(connobj)
 }
 
 func getSingleReader(connobj core.ConnectionObj) {
