@@ -6,7 +6,7 @@ import (
 	"myworkspace/core"
 	"myworkspace/reader"
 
-	"github.com/oracle/oci-go-sdk/objectstorage"
+	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
 func GetSwapper(connobj core.ConnectionObj) {
@@ -30,8 +30,9 @@ func GetSwapper(connobj core.ConnectionObj) {
 }
 
 func hasReplPol(namespace string, bucketName string, client objectstorage.ObjectStorageClient) bool {
-	reader, _ := reader.GetReplicationPolicy(namespace, bucketName, client)
-	if reader != nil {
+	policy, _ := reader.GetReplicationPolicy(namespace, bucketName, client)
+
+	if policy.Name != nil {
 		return true
 	} else {
 		return false
