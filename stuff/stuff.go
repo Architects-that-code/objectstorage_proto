@@ -25,8 +25,6 @@ func GetObjectStoragePath(connobj core.ConnectionObj) (string, error) {
 	// Check if the Object Storage is using a service gateway or internet
 	endpoint := fmt.Sprintf("%s/objectstorage/%s/%s", region, namespace, bucketName)
 
-	
-
 	log.Printf("endpoint:%v", endpoint)
 
 	putObject(namespace, bucketName, testObjName, []byte(testObjName), client)
@@ -37,7 +35,7 @@ func GetObjectStoragePath(connobj core.ConnectionObj) (string, error) {
 		BucketName:    common.String(bucketName),
 	}
 
-	hoR , err := client.HeadObject(context.Background(), request)
+	hoR, err := client.HeadObject(context.Background(), request)
 	if err != nil {
 		log.Printf("error:%v", err)
 		if serviceError, ok := common.IsServiceError(err); ok && serviceError.GetHTTPStatusCode() == 301 {

@@ -16,9 +16,9 @@ import (
 const maxWorkers = 10 // Maximum number of concurrent goroutines
 
 func GetRenamer(connobj core.ConnectionObj) {
-	 maxWorkers := connobj.Config.RenamerMaxWorker
+	maxWorkers := connobj.Config.RenamerMaxWorker
 
-	log.Printf("start GetRenamer:maxWorkers:%v" , maxWorkers)
+	log.Printf("start GetRenamer:maxWorkers:%v", maxWorkers)
 
 	bucketName := connobj.Config.Source.Bucketname
 	namespace := connobj.NameSpace
@@ -134,7 +134,7 @@ func ListObjectsInBucket(namespace string, bucketName string, objectStorageClien
 			return nil, err
 		}
 		for _, objectSummary := range listObjectsResponse.ListObjects.Objects {
-				objSums = append(objSums, objectSummary)
+			objSums = append(objSums, objectSummary)
 		}
 		if listObjectsResponse.ListObjects.NextStartWith != nil {
 			listObjectsRequest.Start = listObjectsResponse.ListObjects.NextStartWith

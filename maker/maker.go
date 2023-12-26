@@ -32,7 +32,7 @@ var (
 	maxFileSize = 1024 * 1024 * 10 // 10MB
 )
 
-var maxWorkers = 10 // Maximum number of concurrent goroutines
+var maxWorkers = 100 // Maximum number of concurrent goroutines
 
 func GetMaker(connobj core.ConnectionObj) {
 	numFiles = connobj.Config.MakerNumFiles

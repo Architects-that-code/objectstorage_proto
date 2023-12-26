@@ -33,8 +33,10 @@ func hasReplPol(namespace string, bucketName string, client objectstorage.Object
 	policy, _ := reader.GetReplicationPolicy(namespace, bucketName, client)
 
 	if policy.Name != nil {
+		log.Println("bucket has replication policy")
 		return true
 	} else {
+		log.Println("bucket does not have replication policy")
 		return false
 	}
 }
