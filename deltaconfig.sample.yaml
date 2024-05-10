@@ -1,15 +1,15 @@
-configpath: /Users/jscanlon/.oci/config
+configpath: /Users/<updateme>/.oci/config
 useinstanceprincipal: false
 source:
-  profilename: CHILD_jossur4n01
-  bucketname:  MyBigOldCloudBucket
-  region: us-ashburn-1
+  profilename: <updateme>
+  bucketname:  <updateme>
+  region: <updateme>
 target:
-  profilename: CHILD_jossur4n01_phx
-  bucketname: NewBucketPHX
-  region: us-ashburn-1
+  profilename: <updateme>
+  bucketname: <updateme>
+  region: <updateme>
 home_region:
-  us-ashburn-1
+  <updateme>
 
 batchsize: 100
 limit: 2
