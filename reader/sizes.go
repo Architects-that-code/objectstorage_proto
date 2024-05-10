@@ -2,7 +2,7 @@ package reader
 
 import (
 	"context"
-	"myworkspace/core"
+	"oci-toolkit-object-storage/core"
 	"strconv"
 
 	"log"

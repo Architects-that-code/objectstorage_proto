@@ -1,4 +1,4 @@
-module myworkspace
+module oci-toolkit-object-storage
 
 go 1.20
 

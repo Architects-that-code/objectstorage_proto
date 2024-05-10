@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"myworkspace/core"
+	"oci-toolkit-object-storage/core"
 	"time"
 
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"

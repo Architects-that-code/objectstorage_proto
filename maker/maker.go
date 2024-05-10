@@ -9,7 +9,7 @@ import (
 
 	"log"
 	"math/big"
-	"myworkspace/core"
+	"oci-toolkit-object-storage/core"
 	"sync"
 	"time"
 

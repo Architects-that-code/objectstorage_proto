@@ -7,8 +7,8 @@ import (
 	"log"
 	"sync"
 
-	"myworkspace/core"
-	"myworkspace/reader"
+	"oci-toolkit-object-storage/core"
+	"oci-toolkit-object-storage/reader"
 
 	"github.com/oracle/oci-go-sdk/v65/common"
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
