@@ -17,7 +17,7 @@ os = $(word 1, $@)
 
 .PHONY: $(PLATFORMS) 
 $(PLATFORMS): 
-	GOOS=$(os) GOARCH=amd64 go build -C $(DIR) -ldflags='$(GO_LDFLAGS)' -o ../bin/$(APP)-$(VERSION)-$(os)-amd64 . 
+	GOOS=$(os) GOARCH=amd64 go build -C $(DIR) -ldflags='$(GO_LDFLAGS)' -o ../dist/$(APP)-$(VERSION)-$(os)-amd64 . 
 	
 
 .PHONY: all
@@ -25,7 +25,7 @@ all: windows linux darwin copy_file
 
 .PHONY: clean
 clean:
-	rm  -f ./bin/*
+	rm  -f ./dist/*
 
 copy_file:
-	cp deltaconfig.sample.yaml bin/deltaconfig.yaml
+	cp deltaconfig.sample.yaml dist/deltaconfig.yaml

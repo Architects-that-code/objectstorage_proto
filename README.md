@@ -2,6 +2,8 @@
 
 What are we trying to solve
 
+
+
 ObjectStorage replication is a one way, point-forward action.
 This means that if you have a bucket in one region, and you want to replicate it to another region, you can do that but any data that exists in the source bucket will not be replicated to the destination region.
 

@@ -13,11 +13,14 @@ import (
 	"oci-toolkit-object-storage/stuff"
 	"oci-toolkit-object-storage/swapper"
 
+	utils "oci-toolkit-object-storage/util"
+
 	"os"
 	"strconv"
 )
 
 func main() {
+	utils.PrintBanner()
 	fmt.Println("____")
 
 	fmt.Println("Select an option:")
