@@ -84,6 +84,7 @@ func getSingleReader(connobj core.ConnectionObj) {
 }
 
 func getSizes(connobj core.ConnectionObj) {
+	// GetSizes retrieves the sizes of the objects in the connection object.
 	reader.GetSizes(connobj)
 }
 
