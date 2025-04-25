@@ -11,7 +11,8 @@ func PrintSpace() {
 }
 
 func PrintBanner() {
-	myFigure := figure.NewFigure("Architects That Code", "", true)
+	myFigure := figure.NewColorFigure("Architects That Code", "", "blue", false)
+	//myFigure.Scroll(800, 100, "left")
 	myFigure.Print()
 	PrintSpace()
 }
