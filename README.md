@@ -21,7 +21,6 @@ configuration file: deltaconfig.yaml
 
  DISCLAIMER:  this code is NOT production ready, NOR is it intended to be.  It is a prototype to test out some ideas and concepts.
 
- SSH command to proxy thru self made basion
- ssh -o ProxyCommand="ssh -W %h:%p opc@150.136.138.165" opc@10.0.1.123  
+
 
  
