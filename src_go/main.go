@@ -1,9 +1,11 @@
 package main
 
 import (
-	"fmt"
-
 	"bufio"
+	"fmt"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"oci-toolkit-object-storage/core"
 	"oci-toolkit-object-storage/delta"
 	"oci-toolkit-object-storage/maker"
@@ -20,6 +22,11 @@ import (
 )
 
 func main() {
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	utils.PrintBanner()
 	fmt.Println("____")
 

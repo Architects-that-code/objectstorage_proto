@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -128,12 +129,50 @@ func getnamespace(ctx context.Context, c objectstorage.ObjectStorageClient) stri
 	fmt.Println("getting namespace")
 	return *r.Value
 }
+func GetObjectCount(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) string {
+	// Create a context for the API call
+	ctx := context.Background()
+
+	// Create the request to get the bucket metadata
+	req := objectstorage.GetBucketRequest{
+		NamespaceName:   &namespace,
+		BucketName:      &bucketName,
+		Fields:          []objectstorage.GetBucketFieldsEnum{objectstorage.GetBucketFieldsApproximatecount},
+		RequestMetadata: common.RequestMetadata{},
+	}
+
+	// Call the API to get the bucket metadata
+	res, err := objectStorageClient.GetBucket(ctx, req)
+	if err != nil {
+		log.Fatalf("Error getting bucket: %v\n", err)
+	}
+	//log.Printf("res: %v\n", res)
+
+	// Get the object count from the bucket metadata
+	objectCount := res.Bucket.ApproximateCount
+	var size = *objectCount
+
+	log.Printf("bucket %v in region %v has approximately %s objects\n", bucketName, objectStorageClient.Endpoint(), strconv.FormatInt(int64(*objectCount), 10))
+	return strconv.Itoa(int(size))
+}
+
 func ListObjectsInBucket(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient, wg *sync.WaitGroup, objSums chan<- []objectstorage.ObjectSummary, errCh chan<- error) {
+	approxsize := GetObjectCount(namespace, bucketName, objectStorageClient)
+	fmt.Printf("##### approx size of bucket %v is %v \n", bucketName, approxsize)
+
 	defer wg.Done()
 	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)
 
 	defaultRetryPolicy := common.DefaultRetryPolicy()
-	var objects []objectstorage.ObjectSummary
+	//var objects []objectstorage.ObjectSummary
+	size, err := strconv.Atoi(approxsize)
+	if err != nil {
+		// Handle the error here, for example:
+		log.Fatal(err)
+	}
+	fmt.Printf("size: %v\n", size)
+	//var objects []objectstorage.ObjectSummary
+	objects := make([]objectstorage.ObjectSummary, size/2)
 	fields := "name,size,timeCreated,timeModified,storageTier"
 
 	listObjectsRequest := objectstorage.ListObjectsRequest{
@@ -154,7 +193,7 @@ func ListObjectsInBucket(namespace, bucketName string, objectStorageClient objec
 	for {
 		select {
 		case <-statusTicker.C:
-			log.Printf("Retrieved %d objects so far from bucket %v", len(objects), bucketName)
+			log.Printf("Retrieved %d objects so far from bucket %v", len(objects)-(size/2), bucketName)
 		default:
 			// Continue with the loop
 		}
