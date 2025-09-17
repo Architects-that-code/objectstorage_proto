@@ -81,7 +81,17 @@ func getSourceClient(config Config, err error) objectstorage.ObjectStorageClient
 }
 
 func getTargetClient(config Config, err error) objectstorage.ObjectStorageClient {
-	_target_configProvider := common.CustomProfileConfigProvider(config.ConfigPath, config.Target.Profilename)
+	var _target_configProvider common.ConfigurationProvider
+
+	if config.UseInstancePrincipal {
+		log.Printf("using instanceprincipal")
+		_target_configProvider, _ = auth.InstancePrincipalConfigurationProvider()
+	} else {
+		log.Printf("NOT using instanceprincipal")
+		_target_configProvider = common.CustomProfileConfigProvider(config.ConfigPath, config.Target.Profilename)
+
+	}
+
 	_target_objectStorageClient, err := objectstorage.NewObjectStorageClientWithConfigurationProvider(_target_configProvider)
 	if err != nil {
 		fmt.Println("Error creating Object Storage client:", err)
