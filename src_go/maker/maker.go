@@ -121,6 +121,14 @@ func makeFile(namespace string, bucketName string, objectStorageClient objectsto
 func putObject(namespace, bucketName, objectName string, contents []byte, objectStorageClient objectstorage.ObjectStorageClient) error {
 	ctx := context.Background()
 	defaultRetryPolicy := common.DefaultRetryPolicy()
+
+	// Generate some metadata for the object
+	metadata := map[string]string{
+		"created-by": "objectstorage_proto",
+		"file-type":  "txt",
+		"timestamp":  time.Now().Format(time.RFC3339),
+	}
+
 	req := objectstorage.PutObjectRequest{
 		NamespaceName: common.String(namespace),
 		BucketName:    common.String(bucketName),
@@ -128,6 +136,7 @@ func putObject(namespace, bucketName, objectName string, contents []byte, object
 		ContentLength: common.Int64(int64(len(contents))),
 		ContentType:   common.String("application/octet-stream"),
 		PutObjectBody: ioutil.NopCloser(bytes.NewReader(contents)),
+		OpcMeta:       metadata,
 	}
 	req.RequestMetadata.RetryPolicy = &defaultRetryPolicy
 
