@@ -12,6 +12,7 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
+// GetSizes logs the approximate object counts and replication policies for source and target buckets.
 func GetSizes(connobj core.ConnectionObj) {
 	log.Println("Getting sizes for source buckets")
 	s1 := GetObjectCount(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
@@ -24,6 +25,8 @@ func GetSizes(connobj core.ConnectionObj) {
 
 }
 
+// GetObjectCount returns the approximate number of objects in the specified bucket as a string.
+// It logs the count and handles errors by fatal logging.
 func GetObjectCount(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) string {
 	// Create a context for the API call
 	ctx := context.Background()
@@ -52,6 +55,8 @@ func GetObjectCount(namespace, bucketName string, objectStorageClient objectstor
 }
 
 // GetReplicationPolicy retrieves the replication policy for a bucket
+// GetReplicationPolicy retrieves and logs the replication policy details for the specified bucket.
+// It returns the first policy found or an error.
 func GetReplicationPolicy(namespace string, bucketName string, client objectstorage.ObjectStorageClient) (objectstorage.ReplicationPolicy, error) {
 
 	// Create a request and dependent object(s).

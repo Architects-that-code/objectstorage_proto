@@ -12,6 +12,8 @@ import (
 
 // This function returns a list of all objects in a given bucket
 
+// GetSourceOnlyReader retrieves and logs the number of objects in the source bucket.
+// It uses ListObjectsInBucketSIMPLE to fetch the object list.
 func GetSourceOnlyReader(connobj core.ConnectionObj) {
 
 	GetObjectCount(connobj.NameSpace, connobj.Config.Source.Bucketname, connobj.SourceClient)
@@ -22,6 +24,8 @@ func GetSourceOnlyReader(connobj core.ConnectionObj) {
 	}
 }
 
+// ListObjectsInSingleBucket lists all objects in the specified bucket with progress logging.
+// It handles pagination and returns the list of object summaries.
 func ListObjectsInSingleBucket(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) []objectstorage.ObjectSummary {
 
 	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)
@@ -77,6 +81,8 @@ func ListObjectsInSingleBucket(namespace, bucketName string, objectStorageClient
 	return objects
 }
 
+// ListObjectsInBucketSIMPLE lists objects in the bucket using pagination.
+// It collects objects in a channel and returns the combined list or an error.
 func ListObjectsInBucketSIMPLE(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) ([]objectstorage.ObjectSummary, error) {
 	objectChannel := make(chan []objectstorage.ObjectSummary, 100)
 	fmt.Printf("getting data from: bucket: %v in  %v \n", bucketName, objectStorageClient.Host)

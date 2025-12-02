@@ -14,6 +14,8 @@ import (
 	"oci-toolkit-object-storage/renamer"
 	"oci-toolkit-object-storage/stuff"
 	"oci-toolkit-object-storage/swapper"
+	"path/filepath"
+	"strings"
 
 	utils "oci-toolkit-object-storage/util"
 
@@ -22,6 +24,13 @@ import (
 )
 
 func main() {
+	configPath := "deltaconfig.yaml"
+	absPath, err := filepath.Abs(configPath)
+	if err != nil {
+		log.Printf("Config file: %s (could not resolve absolute path)", configPath)
+	} else {
+		log.Printf("Config file: %s", absPath)
+	}
 
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
@@ -40,6 +49,7 @@ func main() {
 	fmt.Println("7. GetSizes: FASTEST way to get sizes of all files in a bucket and check for replication policies")
 	fmt.Println("8. GetSingleReader: read all from single bucket")
 	fmt.Println("9. SWAPPING: Change bucket from source to target")
+	fmt.Println("10. Test concurrent reads from a single object")
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter your choice: ")
@@ -77,6 +87,18 @@ func main() {
 	case 9:
 		connobj := core.GetConnections()
 		getSwapper(connobj)
+	case 10:
+		connobj := core.GetConnections()
+		fmt.Print("Enter object name: ")
+		objectName, _ := reader.ReadString('\n')
+		objectName = strings.TrimSpace(objectName)
+		fmt.Print("Enter object size in bytes (e.g., 1048576 for 1MB): ")
+		sizeInput, _ := reader.ReadString('\n')
+		size, _ := strconv.Atoi(strings.TrimSpace(sizeInput))
+		fmt.Print("Enter concurrency level: ")
+		concInput, _ := reader.ReadString('\n')
+		conc, _ := strconv.Atoi(strings.TrimSpace(concInput))
+		preflight.TestConcurrentObjectReads(connobj, objectName, size, conc)
 	default:
 		fmt.Println("Invalid choice")
 	}

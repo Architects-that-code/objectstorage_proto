@@ -20,7 +20,12 @@ import (
 // create package that will be imported from all other package to handle reading config file and returning config struct
 // expose functions to other packages to get config struct
 
+// getConfig reads and parses the configuration from deltaconfig.yaml.
+// It returns the parsed Config struct or an error if reading or unmarshaling fails.
+// getConfig reads and parses the configuration from deltaconfig.yaml.
+// It returns the parsed Config struct or an error if reading or unmarshaling fails.
 func getConfig() (error, Config) {
+	log.Println("Loading config from deltaconfig.yaml")
 	data, err := ioutil.ReadFile("deltaconfig.yaml")
 	if err != nil {
 		// handle error
@@ -34,11 +39,14 @@ func getConfig() (error, Config) {
 	return err, config
 }
 
+// Config represents the application configuration loaded from YAML.
+// It includes settings for source and target buckets, regions, and various operational parameters.
 type Config struct {
 	Source struct {
-		Profilename string `yaml:"profilename"`
-		Bucketname  string `yaml:"bucketname"`
-		Region      string `yaml:"region"`
+		Profilename   string `yaml:"profilename"`
+		Bucketname    string `yaml:"bucketname"`
+		Region        string `yaml:"region"`
+		CompartmentId string `yaml:"compartment_id"`
 	} `yaml:"source"`
 	Target struct {
 		Profilename string `yaml:"profilename"`
@@ -60,6 +68,8 @@ type Config struct {
 	MakerMaxFileSize     int    `yaml:"maker-maxfilesize"`
 }
 
+// getSourceClient creates and returns an ObjectStorageClient for the source bucket.
+// It uses either instance principal or custom profile configuration based on settings.
 func getSourceClient(config Config, err error) objectstorage.ObjectStorageClient {
 	var _source_configProvider common.ConfigurationProvider
 
@@ -80,6 +90,8 @@ func getSourceClient(config Config, err error) objectstorage.ObjectStorageClient
 	return _source_objectStorageClient
 }
 
+// getTargetClient creates and returns an ObjectStorageClient for the target bucket.
+// It uses either instance principal or custom profile configuration based on settings.
 func getTargetClient(config Config, err error) objectstorage.ObjectStorageClient {
 	var _target_configProvider common.ConfigurationProvider
 
@@ -100,6 +112,7 @@ func getTargetClient(config Config, err error) objectstorage.ObjectStorageClient
 	return _target_objectStorageClient
 }
 
+// ConnectionObj holds the clients and configuration for source and target Object Storage connections.
 type ConnectionObj struct {
 	SourceClient objectstorage.ObjectStorageClient
 	TargetClient objectstorage.ObjectStorageClient
@@ -107,6 +120,8 @@ type ConnectionObj struct {
 	NameSpace    string
 }
 
+// GetConnections initializes and returns a ConnectionObj with source and target clients.
+// It loads the config and sets up clients, exiting on errors.
 func GetConnections() ConnectionObj {
 	err, config := getConfig()
 	if err != nil {
@@ -132,6 +147,7 @@ func GetConnections() ConnectionObj {
 	return connObj
 }
 
+// getnamespace retrieves the Object Storage namespace for the given client.
 func getnamespace(ctx context.Context, c objectstorage.ObjectStorageClient) string {
 	request := objectstorage.GetNamespaceRequest{}
 	r, err := c.GetNamespace(ctx, request)
@@ -139,6 +155,8 @@ func getnamespace(ctx context.Context, c objectstorage.ObjectStorageClient) stri
 	fmt.Println("getting namespace")
 	return *r.Value
 }
+
+// GetObjectCount returns the approximate number of objects in the specified bucket as a string.
 func GetObjectCount(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) string {
 	// Create a context for the API call
 	ctx := context.Background()
@@ -166,6 +184,8 @@ func GetObjectCount(namespace, bucketName string, objectStorageClient objectstor
 	return strconv.Itoa(int(size))
 }
 
+// ListObjectsInBucket lists all objects in the bucket asynchronously, sending results to objSums channel.
+// It handles pagination and provides progress updates.
 func ListObjectsInBucket(namespace, bucketName string, objectStorageClient objectstorage.ObjectStorageClient, wg *sync.WaitGroup, objSums chan<- []objectstorage.ObjectSummary, errCh chan<- error) {
 	approxsize := GetObjectCount(namespace, bucketName, objectStorageClient)
 	fmt.Printf("##### approx size of bucket %v is %v \n", bucketName, approxsize)
@@ -223,4 +243,19 @@ func ListObjectsInBucket(namespace, bucketName string, objectStorageClient objec
 		}
 	}
 	objSums <- objects
+}
+
+// GetTenancyOCID retrieves the tenancy OCID from the configuration provider for the source.
+func GetTenancyOCID(config Config) string {
+	var provider common.ConfigurationProvider
+	if config.UseInstancePrincipal {
+		provider, _ = auth.InstancePrincipalConfigurationProvider()
+	} else {
+		provider = common.CustomProfileConfigProvider(config.ConfigPath, config.Source.Profilename)
+	}
+	tenancy, err := provider.TenancyOCID()
+	if err != nil {
+		log.Fatalf("Failed to get tenancy OCID: %v", err)
+	}
+	return tenancy
 }

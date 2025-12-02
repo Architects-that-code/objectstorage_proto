@@ -1,5 +1,8 @@
 package swapper
 
+// Package swapper analyzes the replication setup between source and target buckets,
+// checking object counts and replication policies.
+
 import (
 	"log"
 
@@ -9,6 +12,8 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
+// GetSwapper logs the object counts and checks for replication policies
+// on both source and target buckets.
 func GetSwapper(connobj core.ConnectionObj) {
 
 	//determine which is replication source and target
@@ -29,6 +34,8 @@ func GetSwapper(connobj core.ConnectionObj) {
 
 }
 
+// hasReplPol checks if the specified bucket has a replication policy,
+// logs the result, and returns true if a policy exists.
 func hasReplPol(namespace string, bucketName string, client objectstorage.ObjectStorageClient) bool {
 	policy, _ := reader.GetReplicationPolicy(namespace, bucketName, client)
 

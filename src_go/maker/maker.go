@@ -1,5 +1,8 @@
 package maker
 
+// Package maker provides functionality to generate and upload random files to an Object Storage bucket.
+// It supports concurrent file creation with configurable limits on number of files and concurrency.
+
 import (
 	"bytes"
 	"context"
@@ -18,6 +21,7 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
+// getNamespace retrieves the Object Storage namespace for the given client.
 func getNamespace(ctx context.Context, c objectstorage.ObjectStorageClient) string {
 	request := objectstorage.GetNamespaceRequest{}
 	r, err := c.GetNamespace(ctx, request)
@@ -34,7 +38,46 @@ var (
 
 var maxWorkers = 100 // Maximum number of concurrent goroutines
 
+// GetMaker generates and uploads a specified number of random files to the source bucket.
+// It uses concurrency limited by configuration and logs progress.
+// GetMaker generates and uploads a specified number of random files to the source bucket.
+// It uses concurrency limited by configuration and logs progress.
+// GetMaker generates and uploads a specified number of random files to the source bucket.
+// It checks if the bucket exists and creates it if necessary, then proceeds with file creation.
+// GetMaker generates and uploads a specified number of random files to the source bucket.
+// It checks if the bucket exists and creates it if necessary, then proceeds with file creation.
 func GetMaker(connobj core.ConnectionObj) {
+	// Check if bucket exists, create if not
+	ctx := context.Background()
+	getReq := objectstorage.GetBucketRequest{
+		NamespaceName: &connobj.NameSpace,
+		BucketName:    &connobj.Config.Source.Bucketname,
+	}
+	_, err := connobj.SourceClient.GetBucket(ctx, getReq)
+	if err != nil {
+		if serviceErr, ok := common.IsServiceError(err); ok && serviceErr.GetHTTPStatusCode() == 404 {
+			if connobj.Config.Source.CompartmentId == "" {
+				connobj.Config.Source.CompartmentId = core.GetTenancyOCID(connobj.Config)
+				log.Printf("Using tenancy OCID as compartment ID: %s", connobj.Config.Source.CompartmentId)
+			}
+			log.Printf("Bucket %s does not exist. Creating it.", connobj.Config.Source.Bucketname)
+			createReq := objectstorage.CreateBucketRequest{
+				NamespaceName: &connobj.NameSpace,
+				CreateBucketDetails: objectstorage.CreateBucketDetails{
+					Name:             &connobj.Config.Source.Bucketname,
+					CompartmentId:    &connobj.Config.Source.CompartmentId,
+					PublicAccessType: objectstorage.CreateBucketDetailsPublicAccessTypeNopublicaccess,
+				},
+			}
+			_, createErr := connobj.SourceClient.CreateBucket(ctx, createReq)
+			if createErr != nil {
+				log.Fatalf("Failed to create bucket: %v", createErr)
+			}
+			log.Printf("Bucket %s created successfully.", connobj.Config.Source.Bucketname)
+		} else {
+			log.Fatalf("Error checking bucket: %v", err)
+		}
+	}
 	numFiles = connobj.Config.MakerNumFiles
 	maxWorkers = connobj.Config.RenamerMaxWorker
 	log.Printf("orig maxFileSize:%v", maxFileSize)
@@ -88,6 +131,8 @@ func GetMaker(connobj core.ConnectionObj) {
 	fmt.Println("All requests completed.")
 }
 
+// makeFile generates a single random file and uploads it to the bucket.
+// Returns true if an error occurred, false otherwise.
 func makeFile(namespace string, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) bool {
 
 	fileSizeRange := big.NewInt(int64(maxFileSize - minFileSize + 1))
@@ -118,6 +163,8 @@ func makeFile(namespace string, bucketName string, objectStorageClient objectsto
 	return false
 }
 
+// putObject uploads the provided contents to the specified object in the bucket.
+// It adds metadata and uses retry policy for reliability.
 func putObject(namespace, bucketName, objectName string, contents []byte, objectStorageClient objectstorage.ObjectStorageClient) error {
 	ctx := context.Background()
 	defaultRetryPolicy := common.DefaultRetryPolicy()

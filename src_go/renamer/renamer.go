@@ -1,5 +1,8 @@
 package renamer
 
+// Package renamer provides functionality to rename (move) objects within an Object Storage bucket by copying to a new path and deleting the original.
+// It supports concurrent operations with configurable worker limits.
+
 import (
 	"context"
 	"fmt"
@@ -15,6 +18,8 @@ import (
 
 const maxWorkers = 10 // Maximum number of concurrent goroutines
 
+// GetRenamer lists objects in the source bucket and moves them to a new subfolder path concurrently.
+// It limits concurrency and logs progress.
 func GetRenamer(connobj core.ConnectionObj) {
 	maxWorkers := connobj.Config.RenamerMaxWorker
 
@@ -76,6 +81,7 @@ func GetRenamer(connobj core.ConnectionObj) {
 	fmt.Println("All requests completed.")
 }
 
+// deleteaftercopy deletes the original object after a successful copy.
 func deleteaftercopy(ns string, bucketName string, objSum objectstorage.ObjectSummary, connobj core.ConnectionObj) {
 	log.Printf("deleting %v \n", *objSum.Name)
 	deleteRequest := objectstorage.DeleteObjectRequest{
@@ -90,6 +96,7 @@ func deleteaftercopy(ns string, bucketName string, objSum objectstorage.ObjectSu
 	}
 }
 
+// copyObj copies an object to a new key within the same bucket and region, then deletes the original.
 func copyObj(ns string, bucketName string, objSum objectstorage.ObjectSummary, newKey string, connobj core.ConnectionObj, client objectstorage.ObjectStorageClient) error {
 	defaultRetryPolicy := common.DefaultRetryPolicy()
 	coR := objectstorage.CopyObjectRequest{
@@ -118,6 +125,8 @@ func copyObj(ns string, bucketName string, objSum objectstorage.ObjectSummary, n
 	return nil
 }
 
+// ListObjectsInBucket retrieves a list of all object summaries in the specified bucket.
+// It handles pagination and returns the list or an error.
 func ListObjectsInBucket(namespace string, bucketName string, objectStorageClient objectstorage.ObjectStorageClient) ([]objectstorage.ObjectSummary, error) {
 	fmt.Printf("getting data from:  %v \n", objectStorageClient.Host)
 	var objSums []objectstorage.ObjectSummary

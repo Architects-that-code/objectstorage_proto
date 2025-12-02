@@ -14,6 +14,8 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
+// GetDelta computes the difference between source and target buckets and optionally updates or deletes objects based on configuration.
+// It lists objects from both buckets, identifies deltas, and performs actions like touching or deleting files.
 func GetDelta(connobj core.ConnectionObj) {
 	// use common connections to get config
 
@@ -152,6 +154,8 @@ func GetDelta(connobj core.ConnectionObj) {
 	//log.Printf("%+v\n", _sync_objts)
 }
 
+// NewSimpleUpdate processes a map of object summaries concurrently, either updating or deleting them based on the delete flag.
+// It limits concurrency using a worker pool.
 func NewSimpleUpdate(things map[string]*objectstorage.ObjectSummary, client objectstorage.ObjectStorageClient, ns string, config core.ConnectionObj, delete bool) {
 	log.Printf("Forcing delete: %+v\n", delete)
 
@@ -212,6 +216,8 @@ func NewSimpleUpdate(things map[string]*objectstorage.ObjectSummary, client obje
 	fmt.Println("All requests completed.")
 }
 
+// SimpleUpdate divides the object summaries into batches and processes them concurrently for update or delete operations.
+// It respects batch size, limit, and concurrency settings from config.
 func SimpleUpdate(things map[string]*objectstorage.ObjectSummary, client objectstorage.ObjectStorageClient, ns string, config core.ConnectionObj, delete bool) {
 	log.Printf("Forcing delete: %+v\n", delete)
 	var actionStr string
@@ -265,6 +271,7 @@ func SimpleUpdate(things map[string]*objectstorage.ObjectSummary, client objects
 	}
 }
 
+// divideIntoBatches splits the map of object summaries into batches of the specified size, up to the limit.
 func divideIntoBatches(things map[string]*objectstorage.ObjectSummary, batchSize int, limit int) [][]*objectstorage.ObjectSummary {
 	numBatches := (limit + batchSize - 1) / batchSize
 	if numBatches > len(things) {
@@ -282,6 +289,7 @@ func divideIntoBatches(things map[string]*objectstorage.ObjectSummary, batchSize
 	return batches
 }
 
+// process copies an object to itself in the source bucket to "touch" it, using retry policy.
 func process(ns string, config core.ConnectionObj, objSum *objectstorage.ObjectSummary, client objectstorage.ObjectStorageClient, index int) error {
 
 	defaultRetryPolicy := common.DefaultRetryPolicy()
@@ -310,6 +318,7 @@ func process(ns string, config core.ConnectionObj, objSum *objectstorage.ObjectS
 	return nil
 }
 
+// deletes removes the specified object from the source bucket using retry policy.
 func deletes(ns string, config core.ConnectionObj, objSum *objectstorage.ObjectSummary, client objectstorage.ObjectStorageClient, index int) error {
 	defaultRetryPolicy := common.DefaultRetryPolicy()
 	doR := objectstorage.DeleteObjectRequest{

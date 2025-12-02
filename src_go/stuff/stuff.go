@@ -1,5 +1,7 @@
 package stuff
 
+// Package stuff provides utility functions for working with Object Storage paths and uploading test objects.
+
 import (
 	"bytes"
 	"context"
@@ -12,6 +14,8 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/objectstorage"
 )
 
+// GetObjectStoragePath determines the appropriate Object Storage endpoint (service gateway or internet)
+// by attempting to head a test object and analyzing the response.
 func GetObjectStoragePath(connobj core.ConnectionObj) (string, error) {
 	// Create a new Object Storage client
 
@@ -53,6 +57,7 @@ func GetObjectStoragePath(connobj core.ConnectionObj) (string, error) {
 	}
 }
 
+// putObject uploads a small test object to the bucket to facilitate endpoint detection.
 func putObject(namespace, bucketName, objectName string, contents []byte, objectStorageClient objectstorage.ObjectStorageClient) error {
 	ctx := context.Background()
 	defaultRetryPolicy := common.DefaultRetryPolicy()

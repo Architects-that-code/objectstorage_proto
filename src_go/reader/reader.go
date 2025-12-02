@@ -11,6 +11,8 @@ import (
 
 // This function returns a list of all objects in a given bucket
 
+// GetReader lists objects from both source and target buckets and prints the counts.
+// It uses concurrent goroutines to fetch object lists.
 func GetReader(connobj core.ConnectionObj) {
 
 	GetSizes(connobj)
